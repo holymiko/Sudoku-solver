@@ -8,9 +8,9 @@
 
 (define s1
   '((1 2 3 4)
-    (4 3 6 5)
-    (7 8 9 6)
-    (5 0 1 2)))
+    (4 3 2 0)
+    (2 0 0 1)
+    (0 0 4 2)))
 
 (define s2
   '((0 0 0 0 0 0 0 0 0)
@@ -49,13 +49,13 @@
     
     (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
     (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
+    (0 0 0 0  0 0 0 0  1 0 1 0  0 0 0 0)
     (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
 
     (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
     (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)))
+    (0 0 0 0  0 0 0 0  0 1 0 0  0 0 0 1)
+    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 1 0)))
 
 (define (nth list index)
   (if (null? list)
@@ -92,13 +92,33 @@
   )
 )
 
+#|\\\\\\\\\\\\\\NUMBER CHECK//////////////////////////////////////////|#
+
+(define (numberCheck matrix max)
+  (if (null? matrix)
+      true
+      (if (> (car matrix) max)
+          (error "Number out of range")
+          (if (< (car matrix) 0)
+              (error "Number < 0")
+              (numberCheck (cdr matrix) max)))))
+      
+
+(define (matrixNumberCheck matrix)
+  (if (null? matrix)
+      true
+      (numberCheck (car matrix) (length (car matrix))))
+  (if (null? (cdr matrix))
+      true
+      (matrixNumberCheck (cdr matrix)))) 
+
 #|\\\\\\\\\\\\\\DUPLICITY CHECK//////////////////////////////////////////|#
 
 (define (rowsDuplicateCheck matrix)
   (if (null? matrix)
       true
       (if (check-duplicates (car matrix))
-           (if (= (check-duplicates (car matrix)) 0)
+           (if (= (check-duplicates (car matrix)) 0)  #| This doesnt work 100% '(0 0 1 1) |#
                (rowsDuplicateCheck (cdr matrix))
                (error "Duplicate in row"))
            (rowsDuplicateCheck (cdr matrix)))
@@ -171,15 +191,11 @@
           (error "Looking for box out of range")
           (cutter matrix number))))
 
-
-
-          
-
-#|Checks matrix size and duplicities (excluding 0)|#
-#|Number out of range check missing|#
+#|Checks matrix size, numbers and duplicities (excluding 0)|#
 (define (matrixCheck matrix)
   (rowSize matrix)
   (rowsCheck matrix (length (car matrix)) (length (car matrix)))
+  (matrixNumberCheck matrix)
   (rowsDuplicateCheck matrix)
   (columnDuplicateCheck matrix)
   (boxDuplicateCheck matrix)
