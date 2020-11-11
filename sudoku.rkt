@@ -49,13 +49,13 @@
     
     (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
     (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  1 0 1 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
+    (0 0 0 0  0 0 0 0  0 0 1 0  0 0 0 0)
+    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 2)
 
+    (0 0 0 0  0 0 0 0  0 0 0 0  2 0 0 0)
     (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 1 0 0  0 0 0 1)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 1 0)))
+    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1)
+    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)))
 
 (define (nth list index)
   (if (null? list)
@@ -117,20 +117,16 @@
 (define (rowsDuplicateCheck matrix)
   (if (null? matrix)
       true
-      (if (check-duplicates (car matrix))
-           (if (= (check-duplicates (car matrix)) 0)  #| This doesnt work 100% '(0 0 1 1) |#
-               (rowsDuplicateCheck (cdr matrix))
-               (error "Duplicate in row"))
-           (rowsDuplicateCheck (cdr matrix)))
-      ))
+      (if (check-duplicates (remove* (list 0) (car matrix)))
+           (error "Duplicate in row")
+           (rowsDuplicateCheck (cdr matrix))
+      )))
 
 (define (columnCheck matrix acc)
   (if (= acc 0)
       true
-      (if (check-duplicates (nth-column matrix acc))
-          (if (= (check-duplicates (nth-column matrix acc)) 0)
-               (columnCheck matrix (- acc 1))
-               (error "Duplicate in column"))
+      (if (check-duplicates (remove* (list 0) (nth-column matrix acc)))
+          (error "Duplicate in column")
           (columnCheck matrix (- acc 1))
           )))
 
@@ -140,10 +136,8 @@
 
 (define (boxCheck matrix count)
   (if (> count 0)
-      (if (check-duplicates (getBox matrix count))
-           (if (= (check-duplicates (getBox matrix count)) 0)
-               (boxCheck matrix (- count 1))
-               (error "Duplicate in box"))
+      (if (check-duplicates (remove* (list 0) (getBox matrix count)))
+           (error "Duplicate in box")
            (boxCheck matrix (- count 1)))
       true))
 
