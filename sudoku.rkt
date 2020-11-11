@@ -1,18 +1,25 @@
 #lang racket
+                   #| https://www.minisudoku.com/ |#
 
-(define s0
-  '((1 2 3 4)
-    (4 3 6 5)
-    (0 8 0 0)
-    (0 7 9 6)))
+(define small0        #| Normal |#       
+  '((0 2 0 4)
+    (0 4 3 2)
+    (2 0 4 0)
+    (0 0 0 3)))
 
-(define s1
-  '((1 2 3 4)
-    (4 3 2 0)
-    (2 0 0 1)
-    (0 0 4 2)))
+(define small1        #| Normal |#
+  '((0 2 0 0)
+    (0 0 4 0)
+    (1 3 2 4)
+    (0 0 1 3)))
 
-(define s2                #| Legit sudoku from web |#
+(define small2        #| Hard |#
+  '((0 0 2 3)
+    (0 2 4 0)
+    (0 4 0 0)
+    (0 3 0 0)))
+
+(define regular0                #| Normal |#
   '((1 0 5  0 0 2  0 9 0)
     (0 2 0  5 4 9  0 6 3)
     (0 4 0  0 3 0  0 2 0)
@@ -25,39 +32,65 @@
     (8 0 0  3 9 0  4 7 5)
     (3 5 7  2 8 0  9 0 0)))
 
-(define s3
-  '((1 0 0  0 2 0  0 0 3)
-    (4 0 6  4 5 6  4 5 6)
-    (7 0 9  6 8 9  5 8 9)
+(define regular1                #| Normal |#
+  '((0 4 0  2 0 7  6 8 0)
+    (9 3 0  6 0 0  0 0 7)
+    (0 6 0  0 0 5  0 0 0)
     
-    (0 6 0  0 2 3  6 2 3)
-    (4 7 6  5 0 0  0 5 6)
-    (7 8 9  7 8 9  0 0 0)
+    (3 0 0  0 0 4  5 0 0)
+    (8 0 4  0 0 0  0 0 0)
+    (0 0 0  5 8 0  0 0 3)
     
-    (9 0 0  8 2 3  9 2 3)
-    (4 9 6  0 0 0  0 0 0)
-    (0 0 0  0 8 9  7 8 9)))
+    (0 0 0  0 0 6  0 2 0)
+    (4 2 5  3 0 9  0 7 6)
+    (0 0 7  4 0 2  0 0 0)))
 
-(define s4
-  '((0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
+(define regular2                #| Hard |#
+  '((0 0 0  0 0 0  0 0 3)
+    (0 4 0  0 0 7  0 6 0)
+    (0 5 9  6 8 0  0 0 0)
     
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 1 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 2)
+    (0 8 3  0 4 0  0 0 0)
+    (0 9 2  0 0 0  0 3 0)
+    (4 0 7  0 0 2  0 9 1)
+    
+    (9 0 0  8 1 0  5 0 2)
+    (2 0 0  0 3 9  0 0 0)
+    (0 0 8  0 7 0  0 4 0)))
 
-    (0 0 0 0  0 0 0 0  0 0 0 0  2 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 1)
-    (0 0 0 0  0 0 0 0  0 0 0 0  0 0 0 0)))
+(define regular3                #| Hard |#
+  '((0 0 0  5 8 4  0 6 0)
+    (6 0 5  0 0 0  0 4 0)
+    (7 0 0  0 0 0  0 0 3)
+    
+    (4 0 0  0 0 8  6 0 0)
+    (0 0 0  0 0 9  0 7 0)
+    (0 7 0  4 0 2  9 5 0)
+    
+    (9 0 0  8 4 0  0 0 0)
+    (0 2 3  9 0 5  0 0 0)
+    (5 6 0  0 1 0  0 0 8)))
+
+(define big0                                             #| https://puzzlemadness.co.uk/16by16giantsudoku/easy/2020/11/11 |#
+  '(( 5  0  0  0   0  0  7  1   0  3 14  0   4  0  2  0)
+    (11 14 10  0   2 12  4  0   0  6  0 16   0  9  0  0)
+    ( 3  0  6  4   0  0 14  0   2  0  0  0  10  5  7  0)
+    ( 0  0  0 15   0 10  0  0   8  0  5  0   0  1 11  0)
+
+    ( 0  4  0  2   0  0  0  6   9 13  0  0  14  8 12  1)
+    ( 9 11  1  0  14  0  0 13   0  0  0  4   2  7  5  0)
+    ( 8 12  0  0   4  1  0  0   0 10 15  7  16  3  0  9)
+    ( 6  0  0  0   0  0 16  0   1  2  8 14   0  0 13  0)
+    
+    ( 0  8  0 16   0  0 12 11   0  5  1  0   0  0 15  0)
+    ( 0  0  0  0  15  0  0  7   0  0  2  3   0 13  4  0)
+    ( 2 10  3  0   9  0  1  0   4  0 13  6   7 12  8  0)
+    ( 7  0 12  0   3  4 13  8  11  0 16  0   0  0  0  0)
+
+    (15  0  2 13   7 11  6  0   0  1  4  5  12  0  9  0)
+    ( 0  9  0  0   0 14  2  4   3  0 11  0   0  0  0  0)
+    ( 0  0  0  7  13  0  8  0   0  0  0  0  11 15 14  0)
+    ( 0  0  0  6   1 15  9 12  13  7 10  8   3  0 16  2)))
 
 (define (nth list index)
   (if (null? list)
@@ -187,6 +220,68 @@
           (error "Looking for box out of range")
           (cutter matrix number))))
 
+#|\\\\\\\\\\\\\\GETTING BOX NUMBER//////////////////////////////////////////|#
+
+#| Boxes located on this line |#
+(define (options matrix lineNum)
+  (define sizeSqrt (sqrt (length (car matrix))))
+  (range (* (quotient lineNum sizeSqrt) sizeSqrt)  (* (+(quotient lineNum sizeSqrt)1) sizeSqrt) ))
+  
+#| Boxe located on position |#
+(define (boxNum matrix n pos option)
+  (define sizeSqrt (sqrt (length (car matrix))))
+  (if (>= n (length (car matrix)))
+      (error "Too big n")
+      (if (>= pos (length (car matrix)))
+          (error "Too big pos")
+          (if (>= pos sizeSqrt)
+              (boxNum matrix n (- pos sizeSqrt) (cdr option))
+              (car option)))))
+
+(define (boxNumber matrix lineNum pos)
+  (boxNum matrix lineNum pos (options matrix lineNum)))
+
+#|\\\\\\\\\\\\\\ROW/COLUMN FILLING//////////////////////////////////////////|#
+
+#| Numbers that can be putted instead of 0 on this line |#
+(define (rowPossible line)
+  (remove* line (range 1 (+ (length line) 1))))
+
+#| Numbers that can be putted instead of 0 on this position |#     
+(define (positionPossible column rowPossible box)
+  (remove* box (remove* column rowPossible)) )
+ 
+#| Returns new line with first possible 0 filled with number |#
+(define (newRow matrix line lineNum zeroIndex)
+  (define rowPos (rowPossible line))
+  (if (null? zeroIndex)
+      null
+      (if (null? (positionPossible (getColumn matrix (car zeroIndex)) rowPos (getBox matrix (boxNumber matrix lineNum (car zeroIndex))) ))
+          (error "Fatal error - Position of 0 has no filling possibilities")
+          (if (> (length (positionPossible (getColumn matrix (car zeroIndex)) rowPos (getBox matrix (boxNumber matrix lineNum (car zeroIndex)))) ) 1)
+              (newRow matrix line lineNum (cdr zeroIndex))
+              (list-set line (car zeroIndex) (car (positionPossible (getColumn matrix (car zeroIndex)) rowPos (getBox matrix (boxNumber matrix lineNum (car zeroIndex))) ))) ))))
+
+#| Repeats rowIter from begging always when any row is overwritten (0 -> number) |#
+(define (rowIter fullMatrix lineNum)
+  (if (>= lineNum (length fullMatrix))
+      fullMatrix
+      (if (null? (newRow fullMatrix (list-ref fullMatrix lineNum) lineNum (indexes-where (list-ref fullMatrix lineNum) zero?)) )
+          (rowIter fullMatrix (+ lineNum 1))
+          (rowIter (list-set
+                            fullMatrix #| Matrix to be editted |#
+                            lineNum          #| Position |#
+                            (newRow    #| New line |#
+                                   fullMatrix 
+                                   (list-ref fullMatrix lineNum) #| Line |#
+                                   lineNum
+                                   (indexes-where (list-ref fullMatrix lineNum) zero?)  #| List of zero indexes |#
+                            )
+                    ) 0 )
+       )))
+
+#|\\\\\\\\\\\\\\FINAL//////////////////////////////////////////|#
+
 #|Checks matrix size, numbers and duplicities (excluding 0)|#
 (define (matrixCheck matrix)
   (rowSize matrix)
@@ -197,48 +292,16 @@
   (boxDuplicateCheck matrix)
   )
 
-#| Numbers that can be putted instead of 0 on this line |#
-(define (rowPossible line)
-  (remove* line (range 1 (+ (length line) 1))))
-
-#| Numbers that can be putted instead of 0 on this position |#        #| Doesnt include box numbers |#
-(define (positionPossible column rowPossible)
-  (remove* column rowPossible))
- 
-#| Returns new line with first possible 0 filled with number |#
-(define (newRow matrix line zeroIndex)
-  (define rowPos (rowPossible line))
-  (if (null? zeroIndex)
-      null
-      (if (null? (positionPossible (getColumn matrix (car zeroIndex)) rowPos))
-          (error "Fatal error - Position of 0 has no filling possibilities")
-          (if (> (length (positionPossible (getColumn matrix (car zeroIndex)) rowPos)) 1)
-              (newRow matrix line (cdr zeroIndex))
-              (list-set line (car zeroIndex) (car (positionPossible (getColumn matrix (car zeroIndex)) rowPos))) ))))
-
-#| Repeats rowIter from begging always when any row is overwritten (0 -> number) |#
-(define (rowIter fullMatrix n)
-  (if (>= n (length fullMatrix))
-      fullMatrix
-      (if (null? (newRow fullMatrix (list-ref fullMatrix n) (indexes-where (list-ref fullMatrix n) zero?)) )
-          (rowIter fullMatrix (+ n 1))
-          (rowIter (list-set
-                            fullMatrix #| Matrix to be editted |#
-                            n          #| Position |#
-                            (newRow    #| New line |#
-                                   fullMatrix 
-                                   (list-ref fullMatrix n) #| Line |#
-                                   (indexes-where (list-ref fullMatrix n) zero?)  #| List of zero indexes |#
-                            )
-                    ) 0 )
-       )))
-
-(define (rowFill matrix)
+(define (fill matrix)
   (rowIter matrix 0))
 
+(define (solve matrix)
+  (define solved (fill matrix))
+  (matrixCheck matrix)
+  (matrixCheck solved)
+  solved
+  )
 
 
 
-
-
-
+   
