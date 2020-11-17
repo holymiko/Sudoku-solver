@@ -21,6 +21,12 @@
     (0 4 0 0)
     (0 3 0 0)))
 
+(define small3        #| Wrong |#
+  '((0 0 2 3)
+    (0 2 4 0 0)
+    (0 4 0 0)
+    (0 3 0 0)))
+
 (define regular0                #| Normal |#
   '((1 0 5  0 0 2  0 9 0)
     (0 2 0  5 4 9  0 6 3)
@@ -191,15 +197,9 @@
           matrix
           (matrixCdr (cdr matrix) (- times 1)))))
 
-(define (cutter matrix number)
-  (define sizeSqrt (sqrt (length (car matrix))))
-  (if (>= number sizeSqrt)
-      (cutter (matrixCdr matrix sizeSqrt) (- number sizeSqrt))
-      (extractBox (matrixCdr2 (reverse matrix) sizeSqrt) sizeSqrt '() number)))
-
-#| cdr until only box rows left|#
+#| cdr over reversed matrix, until only box rows left|#
 (define (matrixCdr2 matrix sizeSqrt)
-  (if (> (length matrix ) sizeSqrt )
+  (if (> (length matrix) sizeSqrt )
       (matrixCdr2 (matrixCdr matrix sizeSqrt) sizeSqrt)
       (reverse matrix)))
 
@@ -207,13 +207,22 @@
 (define (extractBox matrix sizeSqrt new number)
   (if (null? matrix)
       new
-      (extractBox (cdr matrix)
+      (extractBox
+               (cdr matrix)
                sizeSqrt
-               (append new (reverse (list-tail
-                                     (reverse (list-tail (car matrix) (* number sizeSqrt)))
-                                     (- (length (list-tail (car matrix) (* number sizeSqrt))) sizeSqrt )
-                                     )))
+               (append new
+                      (reverse (list-tail
+                                    (reverse (list-tail (car matrix) (* number sizeSqrt)))
+                                    (- (length (list-tail (car matrix) (* number sizeSqrt))) sizeSqrt )
+                                 )))
                number)))
+
+#| matrixCdr -> matrixCdr2 -> extractBox |#
+(define (cutter matrix number)
+  (define sizeSqrt (sqrt (length (car matrix))))
+  (if (>= number sizeSqrt)
+      (cutter (matrixCdr matrix sizeSqrt) (- number sizeSqrt))
+      (extractBox (matrixCdr2 (reverse matrix) sizeSqrt) sizeSqrt '() number)))
 
 (define (getBox matrix number)
   (if (< number 0)
@@ -258,12 +267,24 @@
 (define (newRow matrix line lineNum zeroIndex)
   (if (null? zeroIndex)
       null
-      (if (null? (positionPossible (getColumn matrix (car zeroIndex)) (rowPossible line) (getBox matrix (boxNumber matrix lineNum (car zeroIndex))) ))
+      (if (null? (positionPossible
+                      (getColumn matrix (car zeroIndex))  #| Column |#
+                      (rowPossible line)                  #| Row possibilities |#
+                      (getBox                             #| Box |#
+                             matrix
+                            (boxNumber matrix lineNum (car zeroIndex))) )
+                 )
           (error "Fatal error - Position of 0 has no filling possibilities")
-          (if (> (length (positionPossible (getColumn matrix (car zeroIndex)) (rowPossible line) (getBox matrix (boxNumber matrix lineNum (car zeroIndex)))) ) 1)
-              (newRow matrix line lineNum (cdr zeroIndex))
-              (list-set line (car zeroIndex) (car (positionPossible (getColumn matrix (car zeroIndex)) (rowPossible line) (getBox matrix (boxNumber matrix lineNum (car zeroIndex))) ))) )))
-     )
+          (if (> (length (positionPossible (getColumn matrix (car zeroIndex)) (rowPossible line) (getBox matrix (boxNumber matrix lineNum (car zeroIndex)))) ) 1) 
+              (newRow matrix line lineNum (cdr zeroIndex))   #| Too many options for one position -> Go on |#
+              (list-set                                      #| Only one option -> return modified line |#
+                       line                       #| Line to be editted |#
+                       (car zeroIndex)            #| Position to be editted |#
+                       (car (positionPossible     #| New value |#
+                                   (getColumn matrix (car zeroIndex))
+                                   (rowPossible line)
+                                   (getBox matrix (boxNumber matrix lineNum (car zeroIndex))) ))) ))
+      ))
 
 #| Repeats rowIter from begging always when any row is overwritten (0 -> number) |#
 (define (rowIter fullMatrix lineNum)
@@ -275,7 +296,7 @@
                         lineNum
                         (indexes-where (list-ref fullMatrix lineNum) zero?)) )
           (rowIter fullMatrix (+ lineNum 1))
-          (rowIter (list-set           #| Makes matrix with new row (row where 0 was filled) |#
+          (rowIter (list-set     #| Makes matrix with new row (row where 0 was filled) |#
                             fullMatrix #| Matrix to be editted |#
                             lineNum    #| Position |#
                             (newRow    #| New line |#
@@ -303,12 +324,11 @@
   (rowIter matrix 0))
   
 (define-macro (solver matrix)
-  `(let (
-         (solved ,matrix)  #| Fill matrix called only once |#
-         )
-  (matrixCheck solved)
-  solved
-  ))
+  (let ((solved (gensym)))   #| Generate random identifier |#
+  `(let ((,solved ,matrix))  #| Fill matrix called only once |#
+  (matrixCheck ,solved)
+  ,solved
+  )))
 
 (define (solve matrix)
   (matrixCheck matrix)
