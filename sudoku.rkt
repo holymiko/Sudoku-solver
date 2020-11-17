@@ -1,4 +1,6 @@
 #lang racket
+
+(require compatibility/defmacro)
                    #| https://www.minisudoku.com/ |#
 
 (define small0        #| Normal |#       
@@ -129,14 +131,14 @@
 
 #|\\\\\\\\\\\\\\NUMBER CHECK//////////////////////////////////////////|#
 
-(define (numberCheck matrix max)
-  (if (null? matrix)
+(define (numberCheck column max)
+  (if (null? column)
       true
-      (if (> (car matrix) max)
+      (if (> (car column) max)
           (error "Number out of range")
-          (if (< (car matrix) 0)
+          (if (< (car column) 0)
               (error "Number < 0")
-              (numberCheck (cdr matrix) max)))))
+              (numberCheck (cdr column) max)))))
       
 
 (define (matrixNumberCheck matrix)
@@ -236,7 +238,8 @@
           (error "Too big pos")
           (if (>= pos sizeSqrt)
               (boxNum matrix n (- pos sizeSqrt) (cdr option))
-              (car option)))))
+              (car option))))
+     )
 
 (define (boxNumber matrix lineNum pos)
   (boxNum matrix lineNum pos (options matrix lineNum)))
@@ -253,24 +256,28 @@
  
 #| Returns new line with first possible 0 filled with number |#
 (define (newRow matrix line lineNum zeroIndex)
-  (define rowPos (rowPossible line))
   (if (null? zeroIndex)
       null
-      (if (null? (positionPossible (getColumn matrix (car zeroIndex)) rowPos (getBox matrix (boxNumber matrix lineNum (car zeroIndex))) ))
+      (if (null? (positionPossible (getColumn matrix (car zeroIndex)) (rowPossible line) (getBox matrix (boxNumber matrix lineNum (car zeroIndex))) ))
           (error "Fatal error - Position of 0 has no filling possibilities")
-          (if (> (length (positionPossible (getColumn matrix (car zeroIndex)) rowPos (getBox matrix (boxNumber matrix lineNum (car zeroIndex)))) ) 1)
+          (if (> (length (positionPossible (getColumn matrix (car zeroIndex)) (rowPossible line) (getBox matrix (boxNumber matrix lineNum (car zeroIndex)))) ) 1)
               (newRow matrix line lineNum (cdr zeroIndex))
-              (list-set line (car zeroIndex) (car (positionPossible (getColumn matrix (car zeroIndex)) rowPos (getBox matrix (boxNumber matrix lineNum (car zeroIndex))) ))) ))))
+              (list-set line (car zeroIndex) (car (positionPossible (getColumn matrix (car zeroIndex)) (rowPossible line) (getBox matrix (boxNumber matrix lineNum (car zeroIndex))) ))) )))
+     )
 
 #| Repeats rowIter from begging always when any row is overwritten (0 -> number) |#
 (define (rowIter fullMatrix lineNum)
   (if (>= lineNum (length fullMatrix))
       fullMatrix
-      (if (null? (newRow fullMatrix (list-ref fullMatrix lineNum) lineNum (indexes-where (list-ref fullMatrix lineNum) zero?)) )
+      (if (null? (newRow
+                        fullMatrix
+                        (list-ref fullMatrix lineNum)
+                        lineNum
+                        (indexes-where (list-ref fullMatrix lineNum) zero?)) )
           (rowIter fullMatrix (+ lineNum 1))
-          (rowIter (list-set
+          (rowIter (list-set           #| Makes matrix with new row (row where 0 was filled) |#
                             fullMatrix #| Matrix to be editted |#
-                            lineNum          #| Position |#
+                            lineNum    #| Position |#
                             (newRow    #| New line |#
                                    fullMatrix 
                                    (list-ref fullMatrix lineNum) #| Line |#
@@ -294,14 +301,18 @@
 
 (define (fill matrix)
   (rowIter matrix 0))
-
-(define (solve matrix)
-  (define solved (fill matrix))
-  (matrixCheck matrix)
+  
+(define-macro (solver matrix)
+  `(let (
+         (solved ,matrix)  #| Fill matrix called only once |#
+         )
   (matrixCheck solved)
   solved
+  ))
+
+(define (solve matrix)
+  (matrixCheck matrix)
+  (solver (fill matrix))
   )
-
-
 
    
