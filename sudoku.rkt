@@ -79,6 +79,32 @@
     (0 2 3  9 0 5  0 0 0)
     (5 6 0  0 1 0  0 0 8)))
 
+(define regular4                #| Expert |#
+  '((0 3 0  6 0 0  8 9 0)
+    (0 0 0  0 4 0  0 0 0)
+    (0 0 0  8 0 0  5 0 7)
+    
+    (0 9 0  0 0 0  0 0 0)
+    (0 0 0  0 0 6  4 0 5)
+    (3 0 0  0 0 4  0 1 0)
+    
+    (0 6 0  0 1 0  0 3 0)
+    (0 0 1  0 0 0  2 0 0)
+    (4 0 0  0 2 0  0 0 0)))
+
+(define regular5                #| Zero |#
+  '((0 0 0  0 0 0  0 0 0)
+    (0 0 0  0 0 0  0 0 0)
+    (0 0 0  0 0 0  0 0 0)
+    
+    (0 0 0  0 0 0  0 0 0)
+    (0 0 0  0 0 0  0 0 0)
+    (0 0 0  0 0 0  0 0 0)
+    
+    (0 0 0  0 0 0  0 0 0)
+    (0 0 0  0 0 0  0 0 0)
+    (0 0 0  0 0 0  0 0 0)))
+
 (define big0                                             #| https://puzzlemadness.co.uk/16by16giantsudoku/easy/2020/11/11 |#
   '(( 5  0  0  0   0  0  7  1   0  3 14  0   4  0  2  0)
     (11 14 10  0   2 12  4  0   0  6  0 16   0  9  0  0)
@@ -262,31 +288,31 @@
   (remove* box (remove* column rowPossible)) )
  
 #| Returns new line with first possible 0 filled with number |#
-(define (newRow matrix line lineNum zeroIndex)
-  (if (null? zeroIndex)
+(define (newRow matrix line lineNum zeroIndexes)
+  (if (null? zeroIndexes)
       null
       (let (( thePositionPossible  (positionPossible
-                                          (getColumn matrix (car zeroIndex))  #| Column |#
+                                          (getColumn matrix (car zeroIndexes))  #| Column |#
                                           (rowPossible line)                  #| Row possibilities |#
                                           (getBox                             #| Box |#
                                                  matrix
-                                                 (boxNumber matrix lineNum (car zeroIndex))) )))
+                                                 (boxNumber matrix lineNum (car zeroIndexes))) )))
 
       
       (if (null? thePositionPossible)
           (error "Fatal error - Position of 0 has no filling possibilities")
           (if (> ( length thePositionPossible ) 1) 
-              (newRow matrix line lineNum (cdr zeroIndex))   #| Too many options for one position -> Go on |#
+              (newRow matrix line lineNum (cdr zeroIndexes))   #| Too many options for one position -> Go on |#
               (list-set                                      #| Only one option -> return modified line |#
                        line                       #| Line to be editted |#
-                       (car zeroIndex)            #| Position to be editted |#
+                       (car zeroIndexes)            #| Position to be editted |#
                        (car thePositionPossible)) ))
       )))
 
 #| Repeats rowIter from begging always when any row is overwritten (0 -> number) |#
 (define (rowIter fullMatrix lineNum)
   (if (>= lineNum (length fullMatrix))
-      fullMatrix
+      fullMatrix  #| This is over. Matrix is filled |#
       (let (( theNewRow (newRow
                                fullMatrix                        #| Matrix |#
                                (list-ref fullMatrix lineNum)     #| The row |#
@@ -313,18 +339,88 @@
   (boxDuplicateCheck matrix)
   )
 
+(define (findZero matrix n)
+  (if (null? matrix)
+      null
+      (if (null? (indexes-where (car matrix) zero?))
+          (findZero (cdr matrix) (+ n 1))
+          n
+ )))
+
+(define (getZero matrix)
+  (if (null? matrix)
+      (error "There should be some zeros if Im called after findZero")
+      (if (null? (indexes-where (car matrix) zero?))
+          (getZero (cdr matrix))
+          (indexes-where (car matrix) zero?)
+ )))
+
+(define (broot matrix)
+  (let ((zeroIndexes (indexes-where (car matrix) zero?)))
+  (backTrack
+         matrix
+         zeroIndexes
+         0
+         (positionPossible
+               (getColumn matrix (car zeroIndexes))  #| Column |#
+               (rowPossible (car matrix))                  #| Row possibilities |#
+               (getBox                             #| Box |#
+                   matrix
+                  (boxNumber matrix 0 (car zeroIndexes))) )))
+  )
+
+(define (backTrack fullmatrix zeroIndexes lineNum thePositionPossible)
+      (if (null? thePositionPossible)
+          null
+          (let ((newMatrix (list-set
+                                fullmatrix    #| Matrix to be editted |#
+                                lineNum       #| Position to be editted |#
+                                (list-set     #| New row |#                    
+                                    (list-ref fullmatrix lineNum)    #| Line to be editted |#
+                                    (car zeroIndexes)                #| Position to be editted |#
+                                    (car thePositionPossible)))))     #| New value |#
+
+          (if (null? (cdr zeroIndexes))                 #| No more zeros in this line |#
+                (if (null? (findZero newMatrix 0))     #| Are there any more zeros in Matrix? |#
+                    newMatrix                           #| No, Matrix is filled |#
+                    (let ((newLineNum (findZero newMatrix 0))       #| Line with the new zeros |#
+                          (newZeroIndexes (getZero newMatrix)))     #| List of the new zeros |#
+                    (let ((backTrackResult (backTrack newMatrix newZeroIndexes newLineNum (positionPossible
+                                                                                                 (getColumn newMatrix (car newZeroIndexes))         #| Column |#
+                                                                                                 (rowPossible (list-ref newMatrix newLineNum))     #| Row possibilities |#
+                                                                                                 (getBox                                            #| Box |#
+                                                                                                      newMatrix
+                                                                                                      (boxNumber newMatrix newLineNum (car newZeroIndexes))) ) )))
+                    (if (null? backTrackResult)
+                          (backTrack fullmatrix zeroIndexes lineNum (cdr thePositionPossible)) #| Following backTrack failed |#
+                          backTrackResult)                                                     #| Following backTrack succeeded |#
+                      ))
+                )
+                (let ((backTrackResult (backTrack newMatrix (cdr zeroIndexes) lineNum  (positionPossible
+                                                                                                 (getColumn newMatrix (cadr zeroIndexes))         #| Column |#
+                                                                                                 (rowPossible (list-ref newMatrix lineNum))     #| Row possibilities |#
+                                                                                                 (getBox                                            #| Box |#
+                                                                                                      newMatrix
+                                                                                                      (boxNumber newMatrix lineNum (cadr zeroIndexes)) )) )))
+                (if (null? backTrackResult)
+                      (backTrack fullmatrix zeroIndexes lineNum (cdr thePositionPossible))    #| Following backTrack failed |#
+                      backTrackResult)                                                        #| Following backTrack succeeded |#
+                ) 
+           ))
+       ))
+        
 (define (fill matrix)
-  (rowIter matrix 0))
-  
-(define (solver matrix)
-  (let ((solved matrix))  #| Fill matrix called only once |#
-  (matrixCheck solved)
-  solved
+  (let ((afterRowIter (rowIter matrix 0)))
+    (if (null? (findZero afterRowIter 0))
+        afterRowIter
+        (broot afterRowIter))
   ))
 
 (define (solve matrix)
   (matrixCheck matrix)
-  (solver (fill matrix))
-  )
+  (let ((solved (fill matrix)))
+  (matrixCheck solved)
+  solved
+  ))
 
    
