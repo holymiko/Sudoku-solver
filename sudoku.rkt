@@ -323,11 +323,11 @@
 (define (fill matrix)
   (rowIter matrix 0))
   
-(define-macro (solver matrix)
+(define (solver matrix)
   (let ((solved (gensym)))   #| Generate random identifier |#
-  `(let ((,solved ,matrix))  #| Fill matrix called only once |#
-  (matrixCheck ,solved)
-  ,solved
+  (let ((solved matrix))  #| Fill matrix called only once |#
+  (matrixCheck solved)
+  solved
   )))
 
 (define (solve matrix)
