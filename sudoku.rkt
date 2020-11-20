@@ -114,13 +114,13 @@
 #|\\\\\\\\\\\\\\SIZE CHECK//////////////////////////////////////////|#
 
 (define (rowSize matrix)
-  (define sizeSqrt (sqrt (length (car matrix))))
+  (let ((sizeSqrt (sqrt (length (car matrix)))))
   (if (integer? sizeSqrt)
       (if (< sizeSqrt 2)
           (error "Too small")
           true )
       (error "Illegal size"))
-  )
+  ))
 
 (define (rowsCheck matrix n acc)
   (if (= acc 0)
@@ -132,8 +132,7 @@
           (if (= (length (car matrix)) n)
               (rowsCheck (cdr matrix) n (- acc 1))
               (error "Wrong size of row")))
-  )
-)
+  ))
 
 #|\\\\\\\\\\\\\\NUMBER CHECK//////////////////////////////////////////|#
 
@@ -175,7 +174,6 @@
 
 (define (columnDuplicateCheck matrix)
   (columnCheck matrix (- (length (car matrix)) 1)))
-
 
 (define (boxCheck matrix count)
   (if (> count 0)
@@ -219,10 +217,10 @@
 
 #| matrixCdr -> matrixCdr2 -> extractBox |#
 (define (cutter matrix number)
-  (define sizeSqrt (sqrt (length (car matrix))))
+  (let ((sizeSqrt (sqrt (length (car matrix)))))
   (if (>= number sizeSqrt)
       (cutter (matrixCdr matrix sizeSqrt) (- number sizeSqrt))
-      (extractBox (matrixCdr2 (reverse matrix) sizeSqrt) sizeSqrt '() number)))
+      (extractBox (matrixCdr2 (reverse matrix) sizeSqrt) sizeSqrt '() number))))
 
 (define (getBox matrix number)
   (if (< number 0)
@@ -235,12 +233,12 @@
 
 #| Boxes located on this line |#
 (define (options matrix lineNum)
-  (define sizeSqrt (sqrt (length (car matrix))))
-  (range (* (quotient lineNum sizeSqrt) sizeSqrt)  (* (+(quotient lineNum sizeSqrt)1) sizeSqrt) ))
+  (let ((sizeSqrt (sqrt (length (car matrix)))))
+  (range (* (quotient lineNum sizeSqrt) sizeSqrt)  (* (+(quotient lineNum sizeSqrt)1) sizeSqrt) )))
   
 #| Boxe located on position |#
 (define (boxNum matrix n pos option)
-  (define sizeSqrt (sqrt (length (car matrix))))
+  (let ((sizeSqrt (sqrt (length (car matrix)))))
   (if (>= n (length (car matrix)))
       (error "Too big n")
       (if (>= pos (length (car matrix)))
@@ -248,7 +246,7 @@
           (if (>= pos sizeSqrt)
               (boxNum matrix n (- pos sizeSqrt) (cdr option))
               (car option))))
-     )
+     ))
 
 (define (boxNumber matrix lineNum pos)
   (boxNum matrix lineNum pos (options matrix lineNum)))
@@ -267,46 +265,41 @@
 (define (newRow matrix line lineNum zeroIndex)
   (if (null? zeroIndex)
       null
-      (if (null? (positionPossible
-                      (getColumn matrix (car zeroIndex))  #| Column |#
-                      (rowPossible line)                  #| Row possibilities |#
-                      (getBox                             #| Box |#
-                             matrix
-                            (boxNumber matrix lineNum (car zeroIndex))) )
-                 )
+      (let (( thePositionPossible  (positionPossible
+                                          (getColumn matrix (car zeroIndex))  #| Column |#
+                                          (rowPossible line)                  #| Row possibilities |#
+                                          (getBox                             #| Box |#
+                                                 matrix
+                                                 (boxNumber matrix lineNum (car zeroIndex))) )))
+
+      
+      (if (null? thePositionPossible)
           (error "Fatal error - Position of 0 has no filling possibilities")
-          (if (> (length (positionPossible (getColumn matrix (car zeroIndex)) (rowPossible line) (getBox matrix (boxNumber matrix lineNum (car zeroIndex)))) ) 1) 
+          (if (> ( length thePositionPossible ) 1) 
               (newRow matrix line lineNum (cdr zeroIndex))   #| Too many options for one position -> Go on |#
               (list-set                                      #| Only one option -> return modified line |#
                        line                       #| Line to be editted |#
                        (car zeroIndex)            #| Position to be editted |#
-                       (car (positionPossible     #| New value |#
-                                   (getColumn matrix (car zeroIndex))
-                                   (rowPossible line)
-                                   (getBox matrix (boxNumber matrix lineNum (car zeroIndex))) ))) ))
-      ))
+                       (car thePositionPossible)) ))
+      )))
 
 #| Repeats rowIter from begging always when any row is overwritten (0 -> number) |#
 (define (rowIter fullMatrix lineNum)
   (if (>= lineNum (length fullMatrix))
       fullMatrix
-      (if (null? (newRow
-                        fullMatrix
-                        (list-ref fullMatrix lineNum)
-                        lineNum
-                        (indexes-where (list-ref fullMatrix lineNum) zero?)) )
-          (rowIter fullMatrix (+ lineNum 1))
+      (let (( theNewRow (newRow
+                               fullMatrix                        #| Matrix |#
+                               (list-ref fullMatrix lineNum)     #| The row |#
+                               lineNum                           #| Number of the row |#
+                               (indexes-where (list-ref fullMatrix lineNum) zero?))))
+      (if (null? theNewRow )
+          (rowIter fullMatrix (+ lineNum 1))  #| Move to another row |#
           (rowIter (list-set     #| Makes matrix with new row (row where 0 was filled) |#
                             fullMatrix #| Matrix to be editted |#
                             lineNum    #| Position |#
-                            (newRow    #| New line |#
-                                   fullMatrix 
-                                   (list-ref fullMatrix lineNum) #| Line |#
-                                   lineNum
-                                   (indexes-where (list-ref fullMatrix lineNum) zero?)  #| List of zero indexes |#
-                            )
+                            theNewRow  #| New line |#
                     ) 0 )
-       )))
+       ))))
 
 #|\\\\\\\\\\\\\\FINAL//////////////////////////////////////////|#
 
@@ -324,11 +317,10 @@
   (rowIter matrix 0))
   
 (define (solver matrix)
-  (let ((solved (gensym)))   #| Generate random identifier |#
   (let ((solved matrix))  #| Fill matrix called only once |#
   (matrixCheck solved)
   solved
-  )))
+  ))
 
 (define (solve matrix)
   (matrixCheck matrix)
