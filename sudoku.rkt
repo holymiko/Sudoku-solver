@@ -327,17 +327,7 @@
                     ) 0 )
        ))))
 
-#|\\\\\\\\\\\\\\FINAL//////////////////////////////////////////|#
-
-#|Checks matrix size, numbers and duplicities (excluding 0)|#
-(define (matrixCheck matrix)
-  (rowSize matrix)
-  (rowsCheck matrix (length (car matrix)) (length (car matrix)))
-  (matrixNumberCheck matrix)
-  (rowsDuplicateCheck matrix)
-  (columnDuplicateCheck matrix)
-  (boxDuplicateCheck matrix)
-  )
+#|\\\\\\\\\\\\\\BACKTRACKING//////////////////////////////////////////|#
 
 (define (findZero matrix n)
   (if (null? matrix)
@@ -363,8 +353,8 @@
          0
          (positionPossible
                (getColumn matrix (car zeroIndexes))  #| Column |#
-               (rowPossible (car matrix))                  #| Row possibilities |#
-               (getBox                             #| Box |#
+               (rowPossible (car matrix))            #| Row possibilities |#
+               (getBox                               #| Box |#
                    matrix
                   (boxNumber matrix 0 (car zeroIndexes))) )))
   )
@@ -409,6 +399,19 @@
            ))
        ))
         
+
+#|\\\\\\\\\\\\\\FINAL//////////////////////////////////////////|#
+
+#|Checks matrix size, numbers and duplicities (excluding 0)|#
+(define (matrixCheck matrix)
+  (rowSize matrix)
+  (rowsCheck matrix (length (car matrix)) (length (car matrix)))
+  (matrixNumberCheck matrix)
+  (rowsDuplicateCheck matrix)
+  (columnDuplicateCheck matrix)
+  (boxDuplicateCheck matrix)
+  )
+
 (define (fill matrix)
   (let ((afterRowIter (rowIter matrix 0)))
     (if (null? (findZero afterRowIter 0))
