@@ -1,1 +1,1 @@
-Pokusím se o Sudoku
+Sudoku solver writen in Racket
